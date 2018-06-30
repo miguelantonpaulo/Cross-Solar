@@ -1,5 +1,6 @@
 package com.crossover.techtrial.controller;
 
+import com.crossover.techtrial.dto.DailyElectricity;
 import com.crossover.techtrial.model.HourlyElectricity;
 import com.crossover.techtrial.model.Panel;
 
@@ -176,6 +177,18 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 	  public void testShouldNotGetHourlyElectricityByPanelSerial() throws Exception {
 		  ResponseEntity<HourlyElectricity> response = template.getForEntity("/api/panels/"+"test00000000001"+"/hourly", HourlyElectricity.class);
 		  Assert.assertEquals(404,response.getStatusCode().value()); 
+	  }
+	  
+	  @Test
+	  public void testShouldGetDailyElectricityByPanel() throws Exception{
+		  ResponseEntity<DailyElectricity[]> resopnse = template.getForEntity("/api/panels/"+"test567890123457"+"/daily", DailyElectricity[].class);
+		  Assert.assertEquals(200, resopnse.getStatusCode().value());
+	  }
+	  
+	  @Test
+	  public void testShouldNotGetDailyElectricityByPanel() throws Exception{
+		  ResponseEntity<DailyElectricity[]> resopnse = template.getForEntity("/api/panels/"+"testPanelX000001"+"/daily", DailyElectricity[].class);
+		  Assert.assertEquals(404, resopnse.getStatusCode().value());
 	  }
 	  
   private HttpEntity<Object> getHttpEntity(Object body) { 

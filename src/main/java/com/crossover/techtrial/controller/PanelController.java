@@ -133,6 +133,11 @@ public class PanelController {
      * IMPLEMENT THE LOGIC HERE and FEEL FREE TO MODIFY OR ADD CODE TO RELATED CLASSES.
      * MAKE SURE NOT TO CHANGE THE SIGNATURE OF ANY END POINT. NO PAGINATION IS NEEDED HERE.
      */
+    
+    Panel panel = panelService.findBySerial(panelSerial);
+    if(panel==null) {
+    	return ResponseEntity.notFound().build();
+    }
     return ResponseEntity.ok(dailyElectricityForPanel);
   }
 }
