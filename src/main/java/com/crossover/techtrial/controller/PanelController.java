@@ -59,7 +59,7 @@ public class PanelController {
 	  Double longh = panel.getLongitude(); 
 	
 	Panel panelChecker = panelService.findBySerial(panel.getSerial());
-	if(panelChecker!=null) {
+	if(panelChecker!=null) { //panel serial exists
 		return  ResponseEntity.badRequest().build();
 	}else {
 		if(panel.getSerial().length()!=16) {
