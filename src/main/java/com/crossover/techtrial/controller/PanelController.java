@@ -18,6 +18,7 @@ import com.crossover.techtrial.model.Panel;
 import com.crossover.techtrial.service.HourlyElectricityService;
 import com.crossover.techtrial.service.PanelService;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -129,100 +130,94 @@ public class PanelController {
   public ResponseEntity<List<DailyElectricity>> allDailyElectricityFromYesterday(
       @PathVariable(value = "panel-serial") String panelSerial) {
     List<DailyElectricity> dailyElectricityForPanel = new ArrayList<>();
+    
     /**
      * IMPLEMENT THE LOGIC HERE and FEEL FREE TO MODIFY OR ADD CODE TO RELATED CLASSES.
      * MAKE SURE NOT TO CHANGE THE SIGNATURE OF ANY END POINT. NO PAGINATION IS NEEDED HERE.
      */
     
     Panel panel = panelService.findBySerial(panelSerial);
-    if(panel==null) {
-    	return ResponseEntity.notFound().build();
+    if(panel!=null) { //panel with serial exists
+    	
+    	//declarations
+        List<HourlyElectricity> toList = new ArrayList<>();
+        List<HourlyElectricity> listOfAllHourlyElectricityUntilYesterday = new ArrayList<>();
+        List<LocalDate> allDatesRecordedPerPanel = new ArrayList<>();
+        
+        LocalDate dateToday = LocalDate.now();
+        long panelID = panel.getId();
+        
+        LocalDate date;
+        Long sum;
+        Long average;
+        Long min;
+        Long max;
+        
+
+        Iterable<HourlyElectricity> findAllHourlyElectricity = hourlyElectricityService.findElectricityByPanelID();
+        findAllHourlyElectricity.forEach(toList::add); //adds iterable items to list
+        
+        //sorts all hourly electricity by requested panel and recorded dates until yesterday
+        for(int i=0; i<toList.size(); i++) {
+        	long idFromDB = toList.get(i).getPanel().getId();
+        	LocalDate dateFromDB = toList.get(i).getReadingAt().toLocalDate();
+        	
+        	if(idFromDB==panelID && dateFromDB.equals(dateToday)==false) {
+        		//add hourly electricity with the requested panel to new list   
+        		listOfAllHourlyElectricityUntilYesterday.add(toList.get(i));
+        		
+        		//records all dates recorded under panel and save to List
+        		if(allDatesRecordedPerPanel.equals(null)) {	
+        			allDatesRecordedPerPanel.add(dateFromDB);
+        		}else {
+        			if(allDatesRecordedPerPanel.contains(dateFromDB)==false) {
+        				allDatesRecordedPerPanel.add(dateFromDB);
+        			}
+        		}
+        	}
+        }
+        
+        for(int i=0; i<allDatesRecordedPerPanel.size(); i++) {
+        	//initializers
+        	DailyElectricity dailyElectricity = new DailyElectricity();
+    		date=allDatesRecordedPerPanel.get(i);
+    		sum=(long)0;
+    		average=(long)0;
+    		min=null;
+    		max=null;
+        	int counter=0; //will count all electricity with the same date and will be used as divisor for getting average 
+        	
+        	for(int j=0; j<listOfAllHourlyElectricityUntilYesterday.size(); j++) {
+        		LocalDate dateFromList = listOfAllHourlyElectricityUntilYesterday.get(j).getReadingAt().toLocalDate();
+        		if(dateFromList.equals(date)) { //if date matches, data will be manipulated
+        			counter++; 
+        			long electricity = listOfAllHourlyElectricityUntilYesterday.get(j).getGeneratedElectricity();
+        			sum=sum+electricity; 
+        			
+        			if(min==null || min>electricity) {
+        				min=electricity;
+        			}
+        			
+        			if(max==null || max<electricity) {
+        				max=electricity;
+        			}
+        		}
+        	}
+        	average=sum/counter;
+        	
+        	//adds all data to daily electricity
+        	dailyElectricity.setDate(date);
+        	dailyElectricity.setSum(sum);
+        	dailyElectricity.setAverage(average);
+        	dailyElectricity.setMin(min);
+        	dailyElectricity.setMax(max);
+        	
+        	//add daily electricity to List
+        	dailyElectricityForPanel.add(dailyElectricity);
+        }
+        
+        return ResponseEntity.ok(dailyElectricityForPanel);
     }
-    return ResponseEntity.ok(dailyElectricityForPanel);
+	return ResponseEntity.notFound().build();
   }
 }
-
-
-//import org.springframework.data.web.PageableDefault;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.web.bind.annotation.GetMapping;
-//import org.springframework.web.bind.annotation.PathVariable;
-//import org.springframework.web.bind.annotation.PostMapping;
-//import org.springframework.web.bind.annotation.RequestBody;
-//import org.springframework.web.bind.annotation.RestController;
-//
-///**
-// * Panel Controller for all Rest APIs related to Panel.
-// * @author Crossover
-// *
-// */
-//
-//@RestController
-//public class PanelController {
-//
-//  @Autowired
-//  PanelService panelService;
-//  
-//  @Autowired
-//  HourlyElectricityService hourlyElectricityService;
-//  
-//  /**
-//   * Register a Panel to System and start receiving the electricity statistics.
-//   * @param panel to register.
-//   * @return
-//   */
-//  @PostMapping(path = "/api/register")
-//  public ResponseEntity<?> registerPanel(@RequestBody Panel panel) {
-//    panelService.register(panel);
-//    return  ResponseEntity.accepted().build();
-//  }
-//  
-//  /**
-//   * Controller Method to save hourly Electricity to Database. 
-//   * @param panelSerial Serial number of Panel.
-//   * @param hourlyElectricity  generated electricity for this panel.
-//   * @return
-//   */
-//  
-//  @PostMapping(path = "/api/panels/{panel-serial}/hourly")
-//  public ResponseEntity<?> saveHourlyElectricity(
-//      @PathVariable(value = "panel-serial") String panelSerial, 
-//      @RequestBody HourlyElectricity hourlyElectricity) {
-//    return ResponseEntity.ok(hourlyElectricityService.save(hourlyElectricity));
-//  }
-//   
-//  /**
-//   * Get Hourly Electricity from Previous dates.
-//   */
-//  
-//  @GetMapping(path = "/api/panels/{panel-serial}/hourly")
-//  public ResponseEntity<?> hourlyElectricity(
-//      @PathVariable(value = "panel-serial") String panelSerial,
-//      @PageableDefault(size = 5,value = 0) Pageable pageable) {
-//    Panel panel = panelService.findBySerial(panelSerial);
-//    if (panel == null) {
-//      return ResponseEntity.notFound().build(); 
-//    }
-//    Page<HourlyElectricity> page = hourlyElectricityService.getAllHourlyElectricityByPanelId(
-//        panel.getId(), pageable);
-//    return ResponseEntity.ok(page);
-//  }
-//  
-//  /**
-//   * This end point is used by Front end charts component to plot the daily statistics of 
-//   * electricity generated by this Panel from the day it registered to end of previous day.
-//   * @param panelSerial is unique serial for this Panel.
-//   * @return
-//   */
-//  
-//  @GetMapping(path = "/api/panels/{panel-serial}/daily")
-//  public ResponseEntity<List<DailyElectricity>> allDailyElectricityFromYesterday(
-//      @PathVariable(value = "panel-serial") String panelSerial) {
-//    List<DailyElectricity> dailyElectricityForPanel = new ArrayList<>();
-//    /**
-//     * IMPLEMENT THE LOGIC HERE and FEEL FREE TO MODIFY OR ADD CODE TO RELATED CLASSES.
-//     * MAKE SURE NOT TO CHANGE THE SIGNATURE OF ANY END POINT. NO PAGINATION IS NEEDED HERE.
-//     */
-//    return ResponseEntity.ok(dailyElectricityForPanel);
-//  }
-//}

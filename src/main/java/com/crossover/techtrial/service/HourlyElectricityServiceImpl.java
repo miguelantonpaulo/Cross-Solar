@@ -28,4 +28,9 @@ public class HourlyElectricityServiceImpl implements HourlyElectricityService {
     return hourlyElectricityRepository.findAllByPanelId(panelId, pageable);
   }
   
+  public Iterable<HourlyElectricity> findElectricityByPanelID(){
+	return hourlyElectricityRepository.findAll();
+	  
+  }
+  
 }

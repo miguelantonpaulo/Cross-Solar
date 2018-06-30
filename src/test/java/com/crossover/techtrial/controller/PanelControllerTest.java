@@ -4,6 +4,9 @@ import com.crossover.techtrial.dto.DailyElectricity;
 import com.crossover.techtrial.model.HourlyElectricity;
 import com.crossover.techtrial.model.Panel;
 
+import java.time.LocalDateTime;
+import java.time.Month;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -147,7 +150,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 	  public void testHourlyElectricityShouldBeSaved() throws Exception{
 			 HourlyElectricity hourlyElectricity = new HourlyElectricity();
 			 hourlyElectricity.setGeneratedElectricity((long) 628);
-			 hourlyElectricity.setReadingAt(null);
+			 hourlyElectricity.setReadingAt(LocalDateTime.of(2018, Month.JUNE, 28, 00, 00, 00));
 
 			 ResponseEntity<HourlyElectricity> responseElectricity = template.postForEntity(
 				        "/api/panels/"+"test567890123457"+"/hourly", hourlyElectricity, HourlyElectricity.class);
@@ -159,7 +162,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 	  public void testHourlyElectricityShouldNotBeSaved() throws Exception{
 			 HourlyElectricity hourlyElectricity = new HourlyElectricity();
 			 hourlyElectricity.setGeneratedElectricity((long) 628);
-			 hourlyElectricity.setReadingAt(null);
+			 hourlyElectricity.setReadingAt(LocalDateTime.of(2018, Month.JUNE, 28, 00, 00, 00));
 			 
 			 ResponseEntity<HourlyElectricity> responseElectricity = template.postForEntity(
 				        "/api/panels/"+"test000000000001"+"/hourly", hourlyElectricity, HourlyElectricity.class);
@@ -181,7 +184,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 	  
 	  @Test
 	  public void testShouldGetDailyElectricityByPanel() throws Exception{
-		  ResponseEntity<DailyElectricity[]> resopnse = template.getForEntity("/api/panels/"+"test567890123457"+"/daily", DailyElectricity[].class);
+		  ResponseEntity<DailyElectricity[]> resopnse = template.getForEntity("/api/panels/"+"test567890123457"+"/daily", DailyElectricity[].class); 
 		  Assert.assertEquals(200, resopnse.getStatusCode().value());
 	  }
 	  
