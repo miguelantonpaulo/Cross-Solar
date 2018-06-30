@@ -21,7 +21,7 @@ public class HourlyElectricityServiceImpl implements HourlyElectricityService {
   HourlyElectricityRepository hourlyElectricityRepository;
   
   public HourlyElectricity save(HourlyElectricity hourlyElectricity) {
-    return hourlyElectricityRepository.save(hourlyElectricity);
+    return hourlyElectricityRepository.save(hourlyElectricity); 
   }
   
   public Page<HourlyElectricity> getAllHourlyElectricityByPanelId(Long panelId, Pageable pageable) {
